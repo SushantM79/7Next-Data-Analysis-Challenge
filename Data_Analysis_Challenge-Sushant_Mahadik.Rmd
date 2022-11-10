@@ -1,0 +1,179 @@
+---
+title: "7Next Data Analysis Challenge"
+author: "Sushant Mahadik"
+date: "2022-11-10"
+output: pdf_document
+---
+
+
+\textcolor{red}{WarmUp}
+1.a
+The data is about the sales of 10 different stores over a period of 3 months. The dataset contains 9 columns as below:
+MONTH – It contains the month for which the data is present.
+STORECODE  - It contains the code of the store for which the data is present.
+BILL_ID – It contains the code of the bill of the item/items that are bought.
+BILL_AMT – It contains the total amount/value of the items charged against thet bill.
+QTY – It contains the quantity of items that were bought.
+VALUE – It contains the total value of the number of items that were bought.
+PRICE – It contains the unit price of each item.
+GRP – It contains the category of products that were sold.
+
+1.b
+From the data we can see that,
+BILL_AMT is the total value of the items charged against that Bill.
+Value = Price * Quantity
+BILL_AMT is the sum of the Value of the items charged against a particular BILL_ID
+
+
+\textcolor{black}{Data Preprocessing}
+
+\textcolor{red}{Loading Libraries}
+```{r, warning= FALSE}
+library(tidyverse)
+library(ggplot2)
+library(hrbrthemes)
+library(plotly)
+library(tidyverse)
+```
+
+\textcolor{red}{Loading Data}
+```{r, warning= FALSE}
+df = read.csv('D:/Northeastern University/Courses/7Eleven/data_analysis_challenge_data.csv', na = c(''))
+head(df,5)
+```
+
+\textcolor{red}{Exploratory Data Analysis}
+```{r, warning= FALSE}
+str(df)
+```
+
+```{r, warning= FALSE}
+sum(is.na(df))
+```
+\textcolor{blue}{Analysis}
+There are no missing values and hence no corresponding 'NA' vlaues either as we had replaced the missing values with NA while loading the data. The data is clean and ready to be visualized for analysis.
+
+
+
+\textcolor{red}{Question 1: Sales by Store}
+```{r fig.height=7, fig.width=10, warning=FALSE}
+df = read.csv('D:/Northeastern University/Courses/7Eleven/data_analysis_challenge_data.csv', na = c(''))
+
+df1 = df %>% 
+  group_by(STORECODE, MONTH) %>% 
+  summarise(total_sales = sum(BILL_AMT)) %>% 
+  mutate(total_sales = as.integer(total_sales/1000))
+
+df1
+
+plot1 = ggplot(df1, aes(STORECODE, MONTH, fill=-total_sales))+ 
+  geom_tile()+
+  geom_text(size=2.75, colour="white", aes(label=total_sales))+
+  labs(fill="Total Sales in Thousands")+
+  theme_minimal()
+
+ggplotly(plot1)
+
+```
+\textcolor{blue}{Analysis}
+From the heatmap, we can see the total sales amount made by each store over the entire three months. Store N9 has the highest total sale in month 2 while the lowest sale is made by store N6 in month 1.
+
+
+\textcolor{red}{Question 2: Sales by Category}
+```{r fig.height=7, fig.width=10, warning=FALSE}
+df2 = df %>% group_by(STORECODE, GRP) %>% 
+  summarise(sum_qty = sum(QTY)) %>% 
+  select(STORECODE, sum_qty, GRP) %>% 
+  arrange(STORECODE, desc(sum_qty)) %>% 
+  mutate(part_rank = row_number()) %>%
+  filter(part_rank == 1) %>% 
+  select(-part_rank)
+
+df2
+
+plot2 = ggplot(df2, aes(x=STORECODE, y=sum_qty,  fill=GRP))+
+  geom_bar(stat="identity")+
+  theme_minimal()
+
+ggplotly(plot2)
+```
+\textcolor{blue}{Analysis}
+From the Bar chart we can see that the 'BISCUITS - CORE & NON CORE' is the highest selling product category accross most of the stores followed by 'REFINED EDIBLE OILS-ALL PACKS','CLEANERS - TOILET' & 'HAIR OILS PKTP(8/02)'. 
+The most striking observation was of store N1 wherein more than 30,000 units of REFINED EDIBLE OILS-ALL PACKS category were sold. For N1 the highest selling product category was REFINED EDIBLE OILS-ALL PACKS, for N2 it was CLEANERS - TOILET, for N3,N4,N5,N6,N8,N9,N10 it was BISCUITS - CORE & NON CORE and for N7 it was HAIR OILS PKTP(8/02).We can see that across all the stores, FMCG products have the higher number of sales.
+
+
+\textcolor{red}{Question 3: Sales by Day}
+```{r fig.height=7, fig.width=10, warning=FALSE}
+df3 = df %>% group_by(STORECODE, MONTH, DAY) %>% 
+  summarise(total_sales = sum(BILL_AMT)) %>% 
+  arrange(STORECODE, MONTH, desc(total_sales)) %>% 
+  mutate(part_rank = row_number()) %>% 
+  filter(part_rank == 1) %>% 
+  select(-part_rank)
+
+n10df = filter(df3, STORECODE == 'N10')
+n9df = filter(df3, STORECODE == 'N9')
+n8df = filter(df3, STORECODE == 'N8')
+n7df = filter(df3, STORECODE == 'N7')
+n6df = filter(df3, STORECODE == 'N6')
+n5df = filter(df3, STORECODE == 'N5')
+n4df = filter(df3, STORECODE == 'N4')
+n3df = filter(df3, STORECODE == 'N3')
+n2df = filter(df3, STORECODE == 'N2')
+n1df = filter(df3, STORECODE == 'N1')
+
+n1df = filter(n1df, total_sales == max(n1df$total_sales))
+n2df = filter(n2df, total_sales == max(n2df$total_sales))
+n3df = filter(n3df, total_sales == max(n3df$total_sales))
+n4df = filter(n4df, total_sales == max(n4df$total_sales))
+n5df = filter(n5df, total_sales == max(n5df$total_sales))
+n6df = filter(n6df, total_sales == max(n6df$total_sales))
+n7df = filter(n7df, total_sales == max(n7df$total_sales))
+n8df = filter(n8df, total_sales == max(n8df$total_sales))
+n9df = filter(n9df, total_sales == max(n9df$total_sales))
+n10df = filter(n10df, total_sales == max(n10df$total_sales))
+
+df3 = bind_rows(n1df, 
+n2df, 
+n3df, 
+n4df, 
+n5df, 
+n6df, 
+n7df, 
+n8df, 
+n9df, 
+n10df
+)
+
+df3
+
+plot3 = ggplot(df3, aes(x=STORECODE, y=total_sales,  fill=-DAY, label=MONTH))+
+  geom_bar(stat="identity")+
+  theme_minimal()
+
+ggplotly(plot3)
+```
+\textcolor{blue}{Analysis}
+Overall from the chart we can see that either the days at the start or the days at the end of the month are the best days for majority of the stores.Among all the stores, N9 had the overall best day on the 8th day of month 2.The best days for each store are as follows, N1:M1:Day 29, N2:M2:Day27, N3:M1:Day3, N4:M3:Day3, N5:M2:Day2, N6:M3:Day21, N7:M2:Day4, N8:M3:Day4, N9:M2:Day8, N10:M2:Day29.
+
+
+\textcolor{red}{Bonus: Sales by Month}
+```{r fig.height=7, fig.width=10, warning=FALSE}
+
+df4 = df %>% group_by(STORECODE, MONTH) %>% 
+  summarise(total_cost = sum(BILL_AMT)) %>% 
+  #select(STORECODE, sum_qty, GRP) %>% 
+  arrange(STORECODE, desc(total_cost)) %>% 
+  mutate(part_rank = row_number()) %>%
+  filter(part_rank == 1)
+
+df4
+
+plot4 = ggplot(df4, aes(x=STORECODE, y=total_cost,  fill=MONTH))+
+  geom_bar(stat="identity")+
+  theme_minimal()
+
+ggplotly(plot4)
+```
+\textcolor{blue}{Analysis}
+From the chart we can see that, 50% of the total number of stores had M3 as their best month followed by M2 and the M1. For N1 & N3 the best month was M1, for N7, N9 & N10 the best month was M2 and for the rest of the stores the best month was M3.
